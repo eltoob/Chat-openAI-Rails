@@ -1,7 +1,11 @@
 class MessagesController < ApplicationController
   def create
     client = OpenAI::Client.new
-    message = Message.create(message_params.merge(chat: Chat.first, from: "user"))
+    chat = Chat.find_by(uuid: params[:message][:chat_uuid])
+    if chat.nil?
+      chat = Chat.create(uuid: params[:message][:chat_uuid])
+    end
+    message = Message.create(content: message_params[:content], chat: chat, from: "user")
     response = client.chat(
       parameters: {
         model: "gpt-3.5-turbo", # Required.
@@ -10,7 +14,7 @@ class MessagesController < ApplicationController
       },
     )
     content = response.dig("choices", 0, "message", "content")
-    @ai_message = Message.create(content: content, chat: Chat.first, from: "assistant")
+    @ai_message = Message.create(content: content, chat: chat, from: "assistant")
     respond_to do |format|
       format.html { redirect_to messages_path }
       format.turbo_stream
