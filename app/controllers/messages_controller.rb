@@ -9,7 +9,7 @@ class MessagesController < ApplicationController
     response = client.chat(
       parameters: {
         model: "gpt-3.5-turbo", # Required.
-        messages: [{ role: "user", content: message.content }], # Required.
+        messages: chat.messages.map { |message| { role: message[:from], content: message[:content] } }, # Required.
         temperature: 0.7,
       },
     )
